@@ -21,8 +21,33 @@ export const getContestsById = async (req: Request, res: Response) => {
     const client = await connectClient();
 
     const contests = await client.collection("contests")
-        .findOne({id: req.params.contestId });
+        .findOne({id: req.params.contestId});
 
 
     res.send({contests});
+};
+
+export const proposeNewName = async (req: Request, res: Response) => {
+    const client = await connectClient();
+
+    const {newNameValue} = req.body;
+    const newId = newNameValue.toLowerCase().replace(/\s/, '-');
+    console.log(newId);
+    const doc = await client.collection("contests")
+        .findOneAndUpdate(
+            {id: req.params.contestId},
+            {
+                $push: {
+                    names: {
+                        id: newId,
+                        name: newNameValue,
+                        timestamp: new Date(),
+                    }
+                }
+            },
+            {returnDocument: "after"}
+        );
+
+
+    res.send({updatedContest: doc});
 };
